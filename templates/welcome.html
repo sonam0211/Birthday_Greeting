@@ -1,0 +1,16 @@
+{% extends 'bootstrap/base.html' %}
+<!DOCTYPE html>
+<html lang = "en">
+    <head></head>
+    <body>
+        {% block content %}
+        <div class="jumbotron">
+            <div class="text-center">
+                <h3>We'll Never Let You Forget Your Close One's Birthday :)</h3>
+                <p><a class="btn btn-primary btn-lg" href="{{url_for('fill')}}" role="button">Click Here</a> And Maintain Your Birthday List</p>
+                <p><a class="btn btn-primary btn-lg" href="{{url_for('mail')}}" role="button">Click Here</a> And Find Whose Birthday You'r Missing</p>
+            </div>
+        </div>
+        {% endblock %}
+    </body>
+</html> 
