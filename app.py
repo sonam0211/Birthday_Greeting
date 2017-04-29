@@ -5,9 +5,9 @@ from sqlalchemy import and_
 from sqlalchemy import text
 import datetime
 import smtplib
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
-from email.MIMEBase import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
 from email import encoders
 
 
@@ -19,17 +19,17 @@ db = SQLAlchemy(app)
 
 class User(db.Model):
 	__tablename__ = 'users'
-	id = db.Column('guest_id', db.Integer, primary_key = True)
-   	name = db.Column(db.String(100))
-   	last  = db.Column(db.String(50)) 
-   	date = db.Column(db.Integer)
-   	email = db.Column(db.String(50)) 
+	id = db.Column('id', db.Integer, primary_key = True)
+	name = db.Column(db.String(100))
+	last  = db.Column(db.String(50)) 
+	date = db.Column(db.Integer)
+	email = db.Column(db.String(50),unique=True) 
 
-   	def __init__(self, name, last, date,email):
-	  	self.name = name
-	  	self.last = last
-	  	self.date = date
-	  	self.email = email
+	def __init__(self, name, last, date,email):
+		self.name = name
+		self.last = last
+		self.date = date
+		self.email = email
 
 @app.route('/')
 def welcome():
@@ -42,15 +42,36 @@ def fill():
 @app.route('/mail')	
 def mail():
 	today = datetime.date.today().strftime("%d/%m")
-	if db.session.query(User).filter_by(date = today).first():
-		fromaddr = "example@gmail.com"
-		toaddr = db.session.query(User).filter_by(date = today).first().email 
+	bday_list = db.session.query(User).filter_by(date = today)
+	return render_template('bday_list.html',bday = bday_list)
+	
+
+@app.route('/addrec', methods = ['GET', 'POST'])
+def addrec():
+	if request.method == 'POST':
+		data = User(request.form['name'], request.form['last'],request.form['date'],request.form['email'])
+		db.session.add(data)
+		db.session.commit()	
+	return render_template('next.html')  
+
+
+@app.route('/see')
+def see():
+   return render_template('see.html' ,data=User.query.all())
+
+@app.route('/send') 
+def send():
+	today = datetime.date.today().strftime("%d/%m")
+	fromaddr = "sonam0211@gmail.com"
+	toaddr = db.session.query(User).filter_by(date = today)
+	
+	for a in toaddr:
+
 		msg = MIMEMultipart() 
 		msg['From'] = fromaddr
-		msg['To'] = toaddr
-		name1= db.session.query(User).filter_by(date = today).first().name 
+		msg['To'] = a.email 
 		msg['Subject'] = "Happy BirthDay"
-		body = "Many Many Happy Returns Of The Day %s" %name1
+		body = "Many Many Happy Returns Of The Day %s" %a.name
 		msg.attach(MIMEText(body, 'plain'))
 		filename = "best-birthday-greeting-cards.jpg"
 		attachment = open(".\\best-birthday-greeting-cards.jpg","rb")
@@ -61,26 +82,11 @@ def mail():
 		msg.attach(part)
 		server = smtplib.SMTP('smtp.gmail.com', 587)
 		server.starttls()
-		server.login(fromaddr, "password")
+		server.login(fromaddr, "02111996")
 		text = msg.as_string()
-		server.sendmail(fromaddr, toaddr, text)
+		server.sendmail(fromaddr, a.email, text)
 		server.quit()
-		return "mail has been sent"
-
-
-@app.route('/addrec', methods = ['GET', 'POST'])
-def addrec():
-	if request.method == 'POST':
-		 if request.form['name'] and request.form['last'] and request.form['date'] and request.form['email']:
-			data = User(request.form['name'], request.form['last'],request.form['date'],request.form['email'])
-		 db.session.add(data)
-		 db.session.commit()
-	return render_template('next.html')  
-
-
-@app.route('/see')
-def see():
-   return render_template('see.html' ,data=User.query.all())
+	return "mail has been sent" 
 
 	
 if __name__ == '__main__':
