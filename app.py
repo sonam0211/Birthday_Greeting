@@ -62,7 +62,7 @@ def see():
 @app.route('/send') 
 def send():
 	today = datetime.date.today().strftime("%d/%m")
-	fromaddr = "sonam0211@gmail.com"
+	fromaddr = "example@gmail.com"
 	toaddr = db.session.query(User).filter_by(date = today)
 	
 	for a in toaddr:
@@ -82,7 +82,7 @@ def send():
 		msg.attach(part)
 		server = smtplib.SMTP('smtp.gmail.com', 587)
 		server.starttls()
-		server.login(fromaddr, "02111996")
+		server.login(fromaddr, "Password")
 		text = msg.as_string()
 		server.sendmail(fromaddr, a.email, text)
 		server.quit()
